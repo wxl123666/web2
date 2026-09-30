@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Events | Hebei Charity Events</title>
+    <meta name="description" content="Search Hebei charity events by date, city and category.">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='%23ff4d5e'/><path d='M32 50C32 50 12 38 12 24.5A10.5 10.5 0 0 1 32 19a10.5 10.5 0 0 1 20 5.5C52 38 32 50 32 50z' fill='%23fff'/><circle cx='48' cy='14' r='4' fill='%23ffc94d'/></svg>">
+</head>
+<body data-page="search">
+<div class="texture"></div>
+<div class="lanterns"></div>
+
+<!-- ===================== NAVIGATION =================================== -->
+<header class="navbar">
+    <nav class="nav-inner" aria-label="Main navigation">
+        <a class="brand" href="index.html">
+            <span class="brand-mark">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                    <path d="M32 50C32 50 12 38 12 24.5A10.5 10.5 0 0 1 32 19a10.5 10.5 0 0 1 20 5.5C52 38 32 50 32 50z" fill="#fff"/>
+                    <circle cx="48" cy="14" r="4.5" fill="#2a0710" opacity=".35"/>
+                </svg>
+            </span>
+            <span class="brand-text">Hebei Charity Events<small>河北公益 &middot; PROG2002 A2</small></span>
+        </a>
+
+        <ul class="nav-links">
+            <li><span class="nav-pill"></span></li>
+            <li><a data-nav="home" href="index.html">Home</a></li>
+            <li><a data-nav="search" href="search.html">Search</a></li>
+            <li><a data-nav="about" href="index.html#about">About</a></li>
+            <li><a data-nav="contact" href="index.html#contact">Contact</a></li>
+        </ul>
+
+        <div class="nav-cta">
+            <a class="btn btn-primary btn-sm" href="index.html">Back to home</a>
+        </div>
+        <button class="nav-toggle" type="button" aria-label="Toggle menu">&#9776;</button>
+    </nav>
+</header>
+
+<main>
+    <section class="hero container" style="padding-bottom:1.2rem">
+        <div class="hero-grid" style="align-items:center">
+            <div>
+                <span class="tagline"><span class="spark">&#128269;</span> 搜索活动 &middot; Find your event</span>
+                <h1 style="font-size:clamp(2rem,4.4vw,3.1rem);margin:.9rem 0 .6rem">
+                    Search <span class="grad">charity events</span> in Hebei
+                </h1>
+                <p class="lead" style="margin-bottom:0">
+                    Use any one of the filters below &mdash; or combine them. Results are fetched from
+                    <code>GET /api/events/search</code> every time you press Search.
+                </p>
+            </div>
+            <div class="hero-side" style="justify-self:center">
+                <div id="search-mascot"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== FILTER FORM ============================== -->
+    <section class="container" style="padding-bottom:1.6rem">
+        <form class="filter-panel" id="search-form" novalidate>
+            <div class="filter-grid">
+                <div class="field">
+                    <label for="f-date">Date (on or after)</label>
+                    <input type="date" id="f-date" name="date">
+                </div>
+                <div class="field">
+                    <label for="f-location">City / venue</label>
+                    <input type="text" id="f-location" name="location" placeholder="e.g. Shijiazhuang, Baoding">
+                </div>
+                <div class="field">
+                    <label for="f-category">Event category</label>
+                    <select id="f-category" name="category">
+                        <option value="">All categories</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="f-sort">Sort by</label>
+                    <select id="f-sort" name="sort">
+                        <option value="date">Date (soonest first)</option>
+                        <option value="price">Price (low to high)</option>
+                        <option value="price_desc">Price (high to low)</option>
+                        <option value="name">Name (A&ndash;Z)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-grid mt-2">
+                <div class="field">
+                    <label for="f-keyword">Keyword (optional)</label>
+                    <input type="text" id="f-keyword" name="q" placeholder="e.g. fun run, gala, dog">
+                </div>
+                <div class="field">
+                    <label for="f-maxprice">Maximum ticket price (optional)</label>
+                    <input type="number" id="f-maxprice" name="max_price" min="0" step="5" placeholder="e.g. 50">
+                </div>
+                <div class="field" style="justify-content:flex-end">
+                    <label class="check" for="f-free">
+                        <input type="checkbox" id="f-free" name="free" value="1">
+                        Free events only
+                    </label>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn btn-primary" type="submit">&#128269; Search events</button>
+                <button class="btn btn-ghost" type="reset" id="clear-filters">&#8635; Clear Filters</button>
+                <span class="text-dim" id="result-count" style="align-self:center"></span>
+            </div>
+        </form>
+    </section>
+
+    <!-- ===================== RESULTS ================================== -->
+    <section class="container" style="padding-bottom:4rem">
+        <div class="alert alert-error" id="error-box" role="alert">
+            <span class="ai">&#9888;</span><span class="msg"></span>
+        </div>
+        <div class="alert alert-warning" id="notice-box" role="status">
+            <span class="ai">&#128161;</span><span class="msg"></span>
+        </div>
+
+        <div class="event-grid" id="results"></div>
+    </section>
+</main>
+
+<!-- ===================== FOOTER ======================================= -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <a class="brand" href="index.html">
+                    <span class="brand-mark">
+                        <svg viewBox="0 0 64 64" aria-hidden="true">
+                            <path d="M32 50C32 50 12 38 12 24.5A10.5 10.5 0 0 1 32 19a10.5 10.5 0 0 1 20 5.5C52 38 32 50 32 50z" fill="#fff"/>
+                            <circle cx="48" cy="14" r="4.5" fill="#2a0710" opacity=".35"/>
+                        </svg>
+                    </span>
+                    <span class="brand-text">Hebei Charity Events<small>河北公益 &middot; PROG2002 A2</small></span>
+                </a>
+                <p style="margin-top:.9rem">A student project built for PROG2002 Web Development II. Sample data only.</p>
+            </div>
+            <div>
+                <h4>Explore</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="search.html">Search events</a></li>
+                    <li><a href="index.html#about">Our partners</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Tips</h4>
+                <ul>
+                    <li>Filters combine with AND</li>
+                    <li>Leave a field blank to ignore it</li>
+                    <li>Suspended events are never listed</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 Hebei Charity Events &middot; Xinliang Wang (24832805)</span>
+            <span>Node.js &middot; Express &middot; MySQL &middot; HTML/CSS/JavaScript &amp; DOM</span>
+        </div>
+    </div>
+</footer>
+
+<!-- ===================== MODAL ======================================== -->
+<div class="modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-card">
+        <div class="mi" id="modal-icon"></div>
+        <h3 class="modal-title">Feature coming soon</h3>
+        <p class="modal-message">This feature is currently under construction.</p>
+        <button class="btn btn-primary" type="button" data-close-modal>Close</button>
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/api.js"></script>
+<script src="js/card.js"></script>
+<script src="js/search.js"></script>
+</body>
+</html>

@@ -1,118 +1,91 @@
-# Charity Events API — PROG2002 Assessment 2 (Part 1 + Part 2)
+# Hebei Charity Events — client-side website (PROG2002 Assessment 2, Part 3)
 
-RESTful API that serves the Hebei charity events website.
-Built with **Node.js**, **Express** and **MySQL**.
+Three pages built with **HTML, CSS, JavaScript and the DOM**. No framework, no build step.
+Every event shown anywhere comes from the REST API over `fetch()` — nothing is hard-coded.
 
-Student: Xinliang Wang · Student ID: 24832805
+Theme: **"Midnight Lantern"** — a dark ink base with vermilion (中国红) and glaze-gold accents,
+set in Hebei province. Student: Xinliang Wang · Student ID: 24832805
 
 ---
 
-## 1. Files in this folder
+## 1. Files
 
-| File | What it does |
+| File | Page / role |
 | --- | --- |
-| `charityevents_db.sql` | Complete database export. Creates `charityevents_db` with all tables, relationships and the sample data set (6 categories, 5 organisations, 14 events, 14 goals, 56 donations). |
-| `event_db.js` | The database layer. Creates the MySQL connection pool and exports `query()`, `queryOne()` and `testConnection()`. Run `npm run db:test` to check the connection. |
-| `server.js` | The Express application: CORS, logging, the GET-only security guard, route mounting, 404/500 handlers and start-up. |
-| `routes/events.js` | `/api/events`, `/api/events/search`, `/api/events/:id`, `/api/events/:id/similar` |
-| `routes/categories.js` | `/api/categories` |
-| `routes/organisations.js` | `/api/organisations` |
-| `routes/stats.js` | `/api/stats` |
-| `.env` / `.env.example` | Database credentials and the API port. |
+| `index.html` | **Home** — hero, rotating spotlight, bento statistics, category rail, upcoming / featured / past events, partner charities |
+| `search.html` | **Search** — filter form (date / city / category), results, Clear Filters |
+| `event.html` | **Event detail** — illustration hero, full description, details, goal vs progress, tickets, availability, recent support, similar events |
+| `css/style.css` | The whole "Midnight Lantern" theme |
+| `assets/img/*.svg` | Six hand-drawn category illustrations (`fun-run`, `gala`, `auction`, `concert`, `fete`, `workshop`) — each animated inside the SVG |
+| `js/config.js` | Where the API lives (`API_BASE_URL`) |
+| `js/api.js` | Every `fetch()` call to the API, wrapped in Promises |
+| `js/ui.js` | Shared helpers: capsule navigation with sliding pill, scroll reveal, animated counters, toasts, modal, skeletons, drifting lanterns, the mascot, heart confetti |
+| `js/card.js` | Turns one event object into one card (real illustration banner) |
+| `js/home.js` | Home page logic (spotlight rotator, bento, category rail) |
+| `js/search.js` | Search page logic: validation, filtering, Clear Filters, error messages |
+| `js/event.js` | Detail page logic: reads `?id=` from the URL and renders the event |
 
 ---
 
-## 2. Set-up (first time only)
+## 2. Running the site
 
-1. **Import the database**
+The API **must be running first** (see `api/README.md`).
 
-   *MySQL Workbench*: `File → Open SQL Script… → charityevents_db.sql → ⚡ (Execute)`
+**Option A — VS Code Live Server (recommended)**
+1. Install the *Live Server* extension.
+2. Right-click `index.html` → **Open with Live Server**.
+3. The site opens at `http://127.0.0.1:5500/index.html`.
 
-   *Command line*:
-
-   ```bash
-   mysql -u root -p < charityevents_db.sql
-   ```
-
-2. **Install the dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Check the credentials** in `.env`
-
-   ```ini
-   DB_HOST=127.0.0.1
-   DB_PORT=3307      # MySQL 9.7 on this machine (use 3306 for the MySQL 8.0 instance)
-   DB_USER=root
-   DB_PASSWORD=Boyuan2004@
-   DB_NAME=charityevents_db
-   API_PORT=3000
-   ```
-
-4. **Verify the connection**
-
-   ```bash
-   npm run db:test
-   ```
-
----
-
-## 3. Run the API
+**Option B — any static server**
 
 ```bash
-npm start          # or:  node server.js
+# from this folder
+npx serve .            # then open the printed URL
+# or, with Python
+python -m http.server 5500
 ```
-
-You should see:
-
-```
-MySQL connected -> charityevents_db
-Charity Events API (PROG2002 Assessment 2)
-listening on  http://localhost:3000/api
-```
-
-Open <http://localhost:3000/api> in a browser for a live list of every endpoint.
 
 ---
 
-## 4. Endpoints (all GET)
+## 3. How the pages talk to the API
 
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| GET | `/api/health` | API + database health check |
-| GET | `/api/events` | Published events — `?time=upcoming\|past\|all`, `?featured=1`, `?limit=N` |
-| GET | `/api/events/search` | `?date=YYYY-MM-DD`, `?date_to=`, `?location=`, `?category=id\|slug`, `?q=`, `?max_price=`, `?free=1`, `?sort=` |
-| GET | `/api/events/:id` | One event with category, organisation, goal and recent donations |
-| GET | `/api/events/:id/similar` | Up to three related upcoming events |
-| GET | `/api/categories` | Categories with published-event counts |
-| GET | `/api/organisations` | The hosting charities |
-| GET | `/api/stats` | Aggregate figures for the home-page counters |
-
-Quick tests:
-
-```bash
-curl http://localhost:3000/api/events?time=upcoming
-curl http://localhost:3000/api/events/search?category=2
-curl "http://localhost:3000/api/events/search?location=Southport&date=2026-10-01"
-curl http://localhost:3000/api/events/3
+```
+DOM ready  →  fetch(GET /api/...)  →  Promise resolves
+           →  validate response    →  build HTML string
+           →  inject with innerHTML →  animate counters, bars and cards
 ```
 
-### Business rules enforced by the API
+| Page | Endpoints used |
+| --- | --- |
+| `index.html` | `/api/stats`, `/api/events?time=upcoming`, `?featured=1`, `?time=past`, `/api/categories`, `/api/organisations` |
+| `search.html` | `/api/categories` (fills the dropdown), `/api/events/search` (every search) |
+| `event.html` | `/api/events/:id`, `/api/events/:id/similar` |
 
-* **Suspended events are never returned.** `events.status = 'suspended'` is filtered out of every query, so the two policy-breaching sample events never appear on the website.
-* **Past vs upcoming is computed**, not stored: `CASE WHEN event_date < CURDATE() THEN 'past' ELSE 'upcoming' END`.
-* **Only GET is allowed.** Any other verb receives HTTP 405 with an explanatory message (write methods arrive in Assessment 3).
-* **All input is parameterised** through `pool.execute()`, so SQL injection is not possible. Invalid input returns HTTP 400 with a readable message.
+The event id travels between pages as a **URL query string** — `event.html?id=3`.
+
+---
+
+## 4. Features worth pointing out in the demo
+
+* **Real illustrations** instead of emoji — six hand-drawn SVG scenes that animate inside the file (runners jog, candles flicker, concert beams sweep, music notes float).
+* **Rotating hero spotlight** cycling through the next four upcoming events, with dot indicators.
+* **Bento statistics** with a sparkline built from the real fundraising percentages.
+* **Category rail** with each category's illustration and live event count; clicking one deep-links into filtered search results.
+* **Cute mascot** — a heart character that blinks and waves; it also appears in empty states and the Register modal.
+* **Drifting lanterns** in the background of every page.
+* **Heart confetti** when the Register button is pressed.
+* **Progress bars** that grow with a small heart riding the fill.
+* **Skeleton placeholders** while loading, inline errors, empty-state messages and toasts.
+* **Register button** opens a modal reading *"This feature is currently under construction."*
+* **Responsive** — collapsible menu below 880 px, and `prefers-reduced-motion` is respected.
 
 ---
 
 ## 5. Troubleshooting
 
-| Symptom | Fix |
+| Symptom | Cause |
 | --- | --- |
-| `Cannot reach the API` in the browser | The API is not running — start it with `npm start` in this folder. |
-| `MySQL connected -> null` or `ECONNREFUSED` | Wrong `DB_PORT`. This machine has MySQL 9.7 on **3307** and MySQL 8.0 on **3306**; set the port that matches the server holding `charityevents_db`. |
-| `Table 'charityevents_db.goals' doesn't exist` | The SQL file has not been imported, or it was imported into the *other* MySQL instance. |
-| `EADDRINUSE :::3000` | Something else is already on port 3000 — change `API_PORT` in `.env` and in `clientside/js/config.js`. |
+| "Cannot reach the API" toast / error box | The API is not running. Start it: `npm start` in the `api` folder. |
+| Page loads but every grid is empty | MySQL is not reachable from the API — check `api/.env`, especially `DB_PORT` (this project uses 3307). |
+| Illustrations do not appear | The SVG files are missing from `assets/img/`, or the page was opened with `file://` from a folder that blocks relative paths — use a local server. |
+| Site works but the API is on another port | Edit `API_BASE_URL` in `js/config.js`. |
